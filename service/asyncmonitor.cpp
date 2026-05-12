@@ -81,6 +81,7 @@ void AsyncMonitor::workerLoop()
 AsyncSystemData AsyncMonitor::collectData() const
 {
     AsyncSystemData data;
+    // TODO: 接入真实 CPU/内存/网络/磁盘采集逻辑，当前仅提供时间戳与默认值。
     data.timestamp = QDateTime::currentMSecsSinceEpoch();
     return data;
 }
