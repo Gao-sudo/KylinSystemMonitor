@@ -2,12 +2,14 @@
 #include <QFile>
 #include <QDateTime>
 #include <QDebug>
+#include <QMutexLocker>
 
 AsyncMonitor::AsyncMonitor()
     : m_workerThread(nullptr)
     , m_running(0)
     , m_intervalMs(500)
 {
+    qRegisterMetaType<AsyncSystemData>("AsyncSystemData");
 }
 
 AsyncMonitor::~AsyncMonitor()
@@ -23,9 +25,10 @@ AsyncMonitor& AsyncMonitor::instance()
 
 void AsyncMonitor::start(int intervalMs)
 {
+    QMutexLocker locker(&m_stateMutex);
     if (m_running.loadAcquire() == 1) return;
 
-    m_intervalMs = intervalMs;
+    m_intervalMs = qMax(10, intervalMs);
     m_running.storeRelease(1);
 
     m_workerThread = QThread::create([this]() {
@@ -36,14 +39,20 @@ void AsyncMonitor::start(int intervalMs)
 
 void AsyncMonitor::stop()
 {
-    if (m_running.loadAcquire() == 0) return;
+    QThread* threadToStop = nullptr;
+    {
+        QMutexLocker locker(&m_stateMutex);
+        if (m_running.loadAcquire() == 0) return;
 
-    m_running.storeRelease(0);
-    if (m_workerThread) {
-        m_workerThread->quit();
-        m_workerThread->wait(3000);
-        delete m_workerThread;
+        m_running.storeRelease(0);
+        threadToStop = m_workerThread;
         m_workerThread = nullptr;
+    }
+
+    if (threadToStop) {
+        threadToStop->quit();
+        threadToStop->wait(3000);
+        delete threadToStop;
     }
 }
 
@@ -55,15 +64,7 @@ void AsyncMonitor::workerLoop()
     while (m_running.loadAcquire() == 1) {
         qint64 start = timer.elapsed();
 
-        // 异步并发采集数据
-        QFuture<AsyncSystemData> future = QtConcurrent::run([this]() {
-            AsyncSystemData data;
-            collectData();
-            return data;
-        });
-
-        // 等待数据采集完成
-        AsyncSystemData data = future.result();
+        AsyncSystemData data = collectData();
 
         // 发射信号到主线程
         emit dataReady(data);
@@ -77,8 +78,10 @@ void AsyncMonitor::workerLoop()
     }
 }
 
-void AsyncMonitor::collectData()
+AsyncSystemData AsyncMonitor::collectData() const
 {
-    // 这里实现实际的数据采集
-    // CPU、内存、磁盘、网络等
+    AsyncSystemData data;
+    // TODO: 接入真实 CPU/内存/网络/磁盘采集逻辑，当前仅提供时间戳与默认值。
+    data.timestamp = QDateTime::currentMSecsSinceEpoch();
+    return data;
 }

@@ -5,18 +5,18 @@
 #include <QThread>
 #include <QAtomicInt>
 #include <QElapsedTimer>
-#include <QFuture>
-#include <QtConcurrent>
+#include <QMutex>
 
 struct AsyncSystemData {
-    double cpuUsage;
-    double memUsage;
-    double netRx;
-    double netTx;
-    double diskRead;
-    double diskWrite;
-    long long timestamp;
+    double cpuUsage = 0.0;
+    double memUsage = 0.0;
+    double netRx = 0.0;
+    double netTx = 0.0;
+    double diskRead = 0.0;
+    double diskWrite = 0.0;
+    long long timestamp = 0;
 };
+Q_DECLARE_METATYPE(AsyncSystemData)
 
 class AsyncMonitor : public QObject
 {
@@ -35,11 +35,12 @@ private:
     ~AsyncMonitor();
 
     void workerLoop();
-    void collectData();
+    AsyncSystemData collectData() const;
 
     QThread* m_workerThread;
     QAtomicInt m_running;
     int m_intervalMs;
+    mutable QMutex m_stateMutex;
 };
 
 #endif
