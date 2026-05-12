@@ -130,7 +130,7 @@ private slots:
         QSignalSpy spy(&monitor, SIGNAL(dataReady(AsyncSystemData)));
         QVERIFY(spy.isValid());
 
-        monitor.start(0);
+        monitor.start(-1);
         QTRY_VERIFY_WITH_TIMEOUT(spy.count() >= 2, 2000);
 
         QList<QVariant> args = spy.takeFirst();
@@ -143,6 +143,7 @@ private slots:
         monitor.stop();
         const int countAfterStop = spy.count();
         QTest::qWait(100);
+        // stop() 与 worker 退出存在时间差，允许最多一个在途信号
         QVERIFY(spy.count() <= countAfterStop + 1);
     }
 

@@ -5,8 +5,6 @@
 #include <QThread>
 #include <QAtomicInt>
 #include <QElapsedTimer>
-#include <QFuture>
-#include <QtConcurrent>
 #include <QMutex>
 
 struct AsyncSystemData {

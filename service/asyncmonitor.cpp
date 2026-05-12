@@ -64,11 +64,7 @@ void AsyncMonitor::workerLoop()
     while (m_running.loadAcquire() == 1) {
         qint64 start = timer.elapsed();
 
-        // 异步并发采集数据
-        QFuture<AsyncSystemData> future = QtConcurrent::run([this]() { return collectData(); });
-
-        // 等待数据采集完成
-        AsyncSystemData data = future.result();
+        AsyncSystemData data = collectData();
 
         // 发射信号到主线程
         emit dataReady(data);
