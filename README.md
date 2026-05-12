@@ -67,6 +67,26 @@ make -j"$(nproc)"
 ./KylinSystemMonitor
 ```
 
+## 测试与覆盖率
+
+新增了基于 QtTest 的服务层测试（`service/cryptohelper` 与 `service/asyncmonitor`），包含：
+
+- 单元测试：哈希、加解密、JSON 加解密、导出成功/失败、空密钥等边界条件
+- 集成测试：并发加解密、多线程 `AsyncMonitor` 启停及间隔边界（`intervalMs <= 0`）
+
+执行方式：
+
+```bash
+chmod +x tests/run_tests_with_coverage.sh
+./tests/run_tests_with_coverage.sh
+```
+
+说明：
+
+- 脚本会构建并运行 `tests/tests.pro` 测试工程
+- 若系统安装了 `gcovr`，会校验行覆盖率阈值 `>=70%`
+- 若未安装 `gcovr`，仅执行测试，不做覆盖率阈值校验
+
 ## 性能/内存分析脚本
 
 仓库提供了以下脚本：

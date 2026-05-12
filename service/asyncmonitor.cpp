@@ -9,6 +9,7 @@ AsyncMonitor::AsyncMonitor()
     , m_running(0)
     , m_intervalMs(500)
 {
+    qRegisterMetaType<AsyncSystemData>("AsyncSystemData");
 }
 
 AsyncMonitor::~AsyncMonitor()

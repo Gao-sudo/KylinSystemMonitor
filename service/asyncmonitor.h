@@ -18,6 +18,7 @@ struct AsyncSystemData {
     double diskWrite = 0.0;
     long long timestamp = 0;
 };
+Q_DECLARE_METATYPE(AsyncSystemData)
 
 class AsyncMonitor : public QObject
 {
